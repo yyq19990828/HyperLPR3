@@ -1,8 +1,18 @@
 # !/usr/bin/env python
 from setuptools import find_packages, setup
-from hyperlpr3 import __version__ as lpr3_ver
+import re
+from pathlib import Path
 
-__version__ = lpr3_ver
+# Read version from __init__.py without importing the module
+def get_version():
+    init_file = Path(__file__).parent / "hyperlpr3" / "__init__.py"
+    content = init_file.read_text(encoding="utf-8")
+    match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', content)
+    if match:
+        return match.group(1)
+    raise RuntimeError("Unable to find version string.")
+
+__version__ = get_version()
 
 if __name__ == "__main__":
     setup(

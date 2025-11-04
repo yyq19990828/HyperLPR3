@@ -21,12 +21,12 @@ def draw_plate_on_image(img, box, text, font):
 
 
 # 中文字体加载
-font_ch = ImageFont.truetype("../resource/font/platech.ttf", 20, 0)
+font_ch = ImageFont.truetype("assets/platech.ttf", 20, 0)
 
 # 实例化识别对象
 catcher = lpr3.LicensePlateCatcher(detect_level=lpr3.DETECT_LEVEL_HIGH)
 # 读取图片
-image = cv2.imread("/Users/tunm/Downloads/tlj.webp")
+image = cv2.imread("assets/1757728337599997520 (1).jpg")
 
 # 执行识别算法
 results = catcher(image)
@@ -34,7 +34,9 @@ for code, confidence, type_idx, box in results:
     # 解析数据并绘制
     text = f"{code} - {confidence:.2f}"
     image = draw_plate_on_image(image, box, text, font=font_ch)
+    print(f"识别结果: {code}, 置信度: {confidence:.2f}, 类型: {type_idx}")
 
-# 显示检测结果
-cv2.imshow("w", image)
-cv2.waitKey(0)
+# 保存检测结果
+output_path = "output.jpg"
+cv2.imwrite(output_path, image)
+print(f"识别完成! 结果已保存到: {output_path}")

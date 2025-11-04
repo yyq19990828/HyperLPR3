@@ -1,12 +1,12 @@
 import os
 import sys
+from pathlib import Path
 
 _MODEL_VERSION_ = "20230229"
 
-if 'win32' in sys.platform:
-    _DEFAULT_FOLDER_ = os.path.join(os.environ['HOMEPATH'], ".hyperlpr3")
-else:
-    _DEFAULT_FOLDER_ = os.path.join(os.environ['HOME'], ".hyperlpr3")
+# Set default folder to project directory
+_PROJECT_ROOT_ = Path(__file__).parent.parent.parent
+_DEFAULT_FOLDER_ = os.path.join(_PROJECT_ROOT_, "models")
 
 _ONLINE_URL_ = "http://hyperlpr.tunm.top/raw/"
 

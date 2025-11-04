@@ -5,3 +5,7 @@ build/
 dist/
 hyperlpr3.egg-info/
 venv/
+models/
+output.jpg
+.venv/
+.python-version
