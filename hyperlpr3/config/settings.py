@@ -6,7 +6,7 @@ _MODEL_VERSION_ = "20230229"
 
 # Set default folder to project directory
 _PROJECT_ROOT_ = Path(__file__).parent.parent.parent
-_DEFAULT_FOLDER_ = os.path.join(_PROJECT_ROOT_, "models")
+_DEFAULT_FOLDER_ = os.path.join(_PROJECT_ROOT_, ".hyperlpr3")
 
 _ONLINE_URL_ = "http://hyperlpr.tunm.top/raw/"
 
