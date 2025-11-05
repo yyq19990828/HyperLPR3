@@ -10,6 +10,7 @@ import uvicorn
 import click
 
 type_list = ["蓝牌", "黄牌单层", "白牌单层", "绿牌新能源", "黑牌港澳", "香港单层", "香港双层", "澳门单层", "澳门双层", "黄牌双层"]
+layer_list = ["单层", "双层"]
 
 catcher = lpr3.LicensePlateCatcher(detect_level=lpr3.DETECT_LEVEL_HIGH)
 
@@ -107,9 +108,10 @@ async def vehicle_license_plate_recognition(file: List[UploadFile] = File(...)):
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR).astype(np.uint8)
         plates = catcher(img)
         results = list()
-        for code, conf, plate_type, box in plates:
+        for code, conf, plate_type, box, layer_num in plates:
             if "nan" != f"{conf}":  # conf=nan会导致Json序列化错误
-                plate = dict(code=code, conf=float(conf), plate_type=type_list[plate_type], box=box)
+                plate = dict(code=code, conf=float(conf), plate_type=type_list[plate_type],
+                           layer=layer_list[layer_num], box=box)
                 results.append(plate)
         return BaseResponse().http_ok_response({'plate_list': results})
 

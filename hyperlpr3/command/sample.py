@@ -69,8 +69,9 @@ def sample(src, det):
         result = catcher(image)
         logger.info(f"共检测到车牌: {len(result)}")
         for res in result:
-            code, conf, plate_type, box = res
-            logger.success(f'[{type_list[plate_type]}]{code} {conf} {box}')
+            code, conf, plate_type, box, layer_num = res
+            layer_text = "单层" if layer_num == lpr3.MONO else "双层"
+            logger.success(f'[{type_list[plate_type]}][{layer_text}]{code} {conf} {box}')
 
 
 if __name__ == "__main__":
