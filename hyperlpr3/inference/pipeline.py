@@ -5,14 +5,55 @@ from hyperlpr3.common.tools_process import *
 
 
 class LPRMultiTaskPipeline(object):
+    """Multi-task pipeline for license plate recognition.
+
+    This pipeline integrates detection, recognition, and classification
+    components to perform end-to-end license plate recognition. It handles
+    both single-layer and double-layer license plates automatically.
+
+    Attributes:
+        detector: License plate detector that outputs bounding boxes, landmarks,
+            and layer information.
+        recognizer: Text recognition model for extracting plate codes.
+        classifier: Plate type classifier (e.g., blue, yellow, green).
+        full_result (bool): Whether to include full vertex information in results.
+    """
 
     def __init__(self, detector, recognizer, classifier, full_result=False):
+        """Initializes the LPR multi-task pipeline.
+
+        Args:
+            detector: License plate detector instance.
+            recognizer: License plate text recognizer instance.
+            classifier: License plate type classifier instance.
+            full_result (bool, optional): If True, results include vertex points.
+                Defaults to False.
+        """
         self.detector = detector
         self.recognizer = recognizer
         self.classifier = classifier
         self.full_result = full_result
 
     def run(self, image: np.ndarray) -> list:
+        """Runs the complete license plate recognition pipeline on an input image.
+
+        This method performs detection, recognition, and classification in sequence.
+        For double-layer plates, it automatically splits and processes the top
+        and bottom portions separately before combining the results.
+
+        Args:
+            image (np.ndarray): Input image in BGR format with shape (H, W, 3).
+
+        Returns:
+            list: List of license plate results. Each result is either:
+                - Compact format: [plate_code, rec_confidence, plate_type,
+                    det_bound_box, layer_num]
+                - Full format (if full_result=True): [plate_code, rec_confidence,
+                    plate_type, det_bound_box, vertex, layer_num]
+
+        Raises:
+            AssertionError: If image is None or not a 3-channel image.
+        """
         result = list()
         assert len(image.shape) == 3, "Input image must be 3 channels."
         assert image is not None, "Input image cannot be empty."
@@ -56,7 +97,8 @@ class LPRMultiTaskPipeline(object):
                     elif idx == PLATE_TYPE_GREEN:
                         plate_type = GREEN
                 plate = Plate(vertex=land_marks, plate_code=plate_code, det_bound_box=np.asarray(rect),
-                              rec_confidence=rec_confidence, dex_bound_confidence=score, plate_type=plate_type)
+                              rec_confidence=rec_confidence, dex_bound_confidence=score, plate_type=plate_type,
+                              layer_num=layer_num)
                 if self.full_result:
                     result.append(plate.to_full_result())
                 else:
@@ -65,18 +107,60 @@ class LPRMultiTaskPipeline(object):
         return result
 
     def __call__(self, image: np.ndarray, *args, **kwargs):
+        """Makes the pipeline callable as a function.
+
+        Args:
+            image (np.ndarray): Input image in BGR format with shape (H, W, 3).
+            *args: Variable length argument list (unused).
+            **kwargs: Arbitrary keyword arguments (unused).
+
+        Returns:
+            list: License plate recognition results from the run method.
+        """
         return self.run(image)
 
 
 class LPRPipeline(object):
+    """Legacy pipeline for license plate recognition.
+
+    This is an older pipeline implementation that uses separate detection
+    and vertex prediction stages. For new applications, consider using
+    LPRMultiTaskPipeline instead.
+
+    Attributes:
+        detector: License plate detector.
+        vertex_predictor: Model for predicting plate corner vertices.
+        recognizer: Text recognition model for extracting plate codes.
+    """
 
     def __init__(self, detector, vertex_predictor, recognizer, ):
+        """Initializes the LPR pipeline.
+
+        Args:
+            detector: License plate detector instance.
+            vertex_predictor: Vertex prediction model instance.
+            recognizer: License plate text recognizer instance.
+        """
         self.detector = detector
         self.vertex_predictor = vertex_predictor
         self.recognizer = recognizer
 
     # @cost("PipelineTotalCost")
     def run(self, image: np.ndarray) -> list:
+        """Runs the legacy license plate recognition pipeline.
+
+        This method performs detection, vertex prediction, and recognition
+        in sequence. It includes special handling for adjacent license plates
+        to reduce false positives.
+
+        Args:
+            image (np.ndarray): Input image in BGR format with shape (H, W, 3).
+
+        Returns:
+            list: List of dictionary results containing plate information.
+                Each dict has keys: plate_code, rec_confidence, det_bound_box,
+                plate_type.
+        """
         result = list()
         boxes, classes, scores = self.detector(image)
         fp_boxes_index = find_the_adjacent_boxes(boxes)
@@ -118,4 +202,14 @@ class LPRPipeline(object):
         return result
 
     def __call__(self, image: np.ndarray, *args, **kwargs):
+        """Makes the pipeline callable as a function.
+
+        Args:
+            image (np.ndarray): Input image in BGR format with shape (H, W, 3).
+            *args: Variable length argument list (unused).
+            **kwargs: Arbitrary keyword arguments (unused).
+
+        Returns:
+            list: License plate recognition results from the run method.
+        """
         return self.run(image)
