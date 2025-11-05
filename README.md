@@ -63,8 +63,9 @@ image = cv2.imread("your_image.jpg")
 results = catcher(image)
 
 # 解析结果
-for code, confidence, type_idx, box in results:
-    print(f"车牌号: {code}, 置信度: {confidence:.2f}")
+for code, confidence, type_idx, box, layer_num in results:
+    layer = "单层" if layer_num == lpr3.MONO else "双层"
+    print(f"车牌号: {code}, 置信度: {confidence:.2f}, 层数: {layer}")
 ```
 
 ### 命令行工具
@@ -162,7 +163,7 @@ flowchart TB
     ClsResult --> Combine
     AssignType --> Combine[组合结果]
 
-    Combine --> Result[(车牌号, 置信度,<br/>类型, 边界框)]
+    Combine --> Result[(车牌号, 置信度,<br/>类型, 边界框, 层数)]
 
     Result --> Loop
     Loop -->|无更多检测框| End([返回结果列表])
